@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carbon Ledger — Track what you emit. Credit what you save.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#11151a;
+    --bg-grid: rgba(231,229,221,0.035);
+    --panel:#171c23;
+    --panel-2:#1c222a;
+    --border:#272e38;
+    --paper:#f1ede2;
+    --paper-2:#e9e4d6;
+    --ink:#23272c;
+    --ink-soft:#6b6356;
+    --text:#e9e7e0;
+    --text-soft:#919aa6;
+    --text-faint:#5d6571;
+    --accent:#5b93c4;
+    --transport:#5b93c4;
+    --electricity:#dba84a;
+    --diet:#c2624a;
+    --waste:#5fa978;
+    --credit:#5fa978;
+    --debit:#c2624a;
+    --radius:12px;
+    --radius-sm:8px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      linear-gradient(var(--bg-grid) 1px, transparent 1px) 0 0/100% 28px,
+      linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px) 0 0/28px 100%,
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  a{color:var(--accent);}
+  ::selection{background:var(--accent);color:#fff;}
+
+  .wrap{max-width:1140px;margin:0 auto;padding:28px 20px 60px;}
+
+  /* ---------- HEADER / HERO ---------- */
+  .sr-only{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+  .hero-img{
+    width:100%; height:auto; display:block;
+    border-radius:var(--radius); border:1px solid var(--border);
+    margin-bottom:20px;
+  }
+  .status-bar{
+    display:flex; justify-content:flex-end;
+    border-bottom:1px solid var(--border);
+    padding-bottom:22px; margin-bottom:26px;
+  }
+  @media (max-width:600px){
+    .status-bar{justify-content:center;}
+  }
+
+  .balance-card{
+    text-align:right; min-width:220px;
+  }
+  .balance-card .label{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--text-faint); margin-bottom:4px;
+  }
+  .balance-card .amount{
+    font-family:'Fraunces', serif; font-size:clamp(30px,5vw,42px); font-weight:600;
+    line-height:1;
+  }
+  .balance-card .amount small{font-size:0.42em; font-weight:500; color:var(--text-soft); margin-left:4px;}
+  .balance-card .delta{
+    margin-top:6px; font-family:'IBM Plex Mono', monospace; font-size:12px;
+    display:inline-flex; align-items:center; gap:5px;
+  }
+  .delta.up{color:var(--debit);}
+  .delta.down{color:var(--credit);}
+  .delta.flat{color:var(--text-faint);}
+
+  /* ---------- GRID ---------- */
+  .grid{
+    display:grid; grid-template-columns: 1.55fr 1fr; gap:22px;
+    align-items:start;
+  }
+  @media (max-width:880px){ .grid{grid-template-columns:1fr;} }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:22px;
+  }
+  .panel + .panel{margin-top:22px;}
+  .panel h2{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--text-faint); margin:0 0 16px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+
+  /* ---------- ENTRY FORM ---------- */
+  .pills{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;}
+  .pill{
+    font-family:'Inter'; font-size:13px; font-weight:600; color:var(--text-soft);
+    background:var(--panel-2); border:1px solid var(--border); border-radius:999px;
+    padding:7px 14px; cursor:pointer; display:inline-flex; align-items:center; gap:7px;
+    transition:all .15s ease;
+  }
+  .pill .dot{width:7px; height:7px; border-radius:50%; background:currentColor; opacity:.55;}
+  .pill[data-active="true"]{
+    color:var(--ink); background:var(--paper); border-color:var(--paper);
+  }
+  .pill[data-active="true"] .dot{opacity:1;}
+  .pill:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+  .field-row{display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px;}
+  .field{flex:1 1 200px; display:flex; flex-direction:column; gap:6px;}
+  .field label{font-size:12px; color:var(--text-soft); font-weight:600;}
+  select, input[type="number"], input[type="date"]{
+    font-family:'Inter'; font-size:14px; color:var(--text);
+    background:var(--panel-2); border:1px solid var(--border); border-radius:var(--radius-sm);
+    padding:10px 12px; width:100%;
+  }
+  select:focus, input:focus{outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent);}
+  .qty-field{display:flex; align-items:stretch; gap:0;}
+  .qty-field input{border-top-right-radius:0; border-bottom-right-radius:0; border-right:none;}
+  .unit-tag{
+    background:var(--panel-2); border:1px solid var(--border); border-left:none;
+    border-top-right-radius:var(--radius-sm); border-bottom-right-radius:var(--radius-sm);
+    padding:10px 12px; font-size:13px; color:var(--text-faint); font-family:'IBM Plex Mono', monospace;
+    display:flex; align-items:center; white-space:nowrap;
+  }
+
+  .preview-row{
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--panel-2); border:1px dashed var(--border); border-radius:var(--radius-sm);
+    padding:12px 14px; margin:14px 0; font-family:'IBM Plex Mono', monospace; font-size:13.5px;
+  }
+  .preview-row .pv-label{color:var(--text-faint);}
+  .preview-row .pv-amt{font-weight:600; font-size:16px;}
+  .pv-amt.debit{color:var(--debit);}
+  .pv-amt.credit{color:var(--credit);}
+
+  .btn{
+    font-family:'Inter'; font-weight:700; font-size:14px; cursor:pointer;
+    border:none; border-radius:var(--radius-sm); padding:11px 18px;
+    background:var(--accent); color:#0d1216; transition:filter .15s ease;
+  }
+  .btn:hover{filter:brightness(1.08);}
+  .btn:focus-visible{outline:2px solid #fff; outline-offset:2px;}
+  .btn.secondary{
+    background:transparent; color:var(--text-soft); border:1px solid var(--border); font-weight:600;
+  }
+  .form-actions{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:4px;}
+
+  /* ---------- LEDGER ---------- */
+  .ledger-list{display:flex; flex-direction:column; max-height:520px; overflow-y:auto;}
+  .ledger-row{
+    display:grid; grid-template-columns: 78px 1fr auto auto 26px;
+    align-items:center; gap:12px;
+    background:var(--paper); color:var(--ink);
+    border-bottom:1px solid var(--paper-2);
+    padding:12px 14px; font-size:13px;
+  }
+  .ledger-row:first-child{border-top-left-radius:var(--radius-sm); border-top-right-radius:var(--radius-sm);}
+  .ledger-row:last-child{border-bottom-left-radius:var(--radius-sm); border-bottom-right-radius:var(--radius-sm); border-bottom:none;}
+  .ledger-row .lr-date{font-family:'IBM Plex Mono', monospace; color:var(--ink-soft); font-size:11.5px;}
+  .ledger-row .lr-main .lr-cat{
+    display:inline-flex; align-items:center; gap:6px; font-weight:700; font-size:11px;
+    text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px;
+  }
+  .ledger-row .lr-main .lr-cat .dot{width:7px;height:7px;border-radius:50%;}
+  .ledger-row .lr-main .lr-activity{color:var(--ink); font-size:13px;}
+  .ledger-row .lr-amt{font-family:'IBM Plex Mono', monospace; font-weight:600; text-align:right; white-space:nowrap;}
+  .ledger-row .lr-amt.debit{color:var(--debit);}
+  .ledger-row .lr-amt.credit{color:var(--credit);}
+  .ledger-row .lr-bal{font-family:'IBM Plex Mono', monospace; color:var(--ink-soft); text-align:right; font-size:11.5px; white-space:nowrap;}
+  .lr-del{
+    background:none; border:none; color:var(--ink-soft); cursor:pointer; font-size:15px; line-height:1;
+    padding:4px; border-radius:4px;
+  }
+  .lr-del:hover{color:var(--debit); background:rgba(0,0,0,0.05);}
+
+  .empty-state{
+    background:var(--paper); color:var(--ink); border-radius:var(--radius-sm);
+    padding:30px 20px; text-align:center;
+  }
+  .empty-state p{margin:0 0 12px; color:var(--ink-soft); font-size:13.5px;}
+  .empty-state .btn.secondary{color:var(--ink-soft); border-color:var(--paper-2);}
+
+  /* ---------- BREAKDOWN ---------- */
+  .bk-row{margin-bottom:13px;}
+  .bk-row:last-child{margin-bottom:0;}
+  .bk-top{display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:5px;}
+  .bk-top .bk-name{display:flex; align-items:center; gap:7px; font-weight:600;}
+  .bk-top .bk-name .dot{width:8px;height:8px;border-radius:50%;}
+  .bk-top .bk-val{font-family:'IBM Plex Mono', monospace; color:var(--text-soft);}
+  .bk-bar{height:7px; border-radius:99px; background:var(--panel-2); overflow:hidden;}
+  .bk-bar > i{display:block; height:100%; border-radius:99px;}
+
+  .bk-empty{color:var(--text-faint); font-size:13px;}
+
+  /* ---------- TREND ---------- */
+  .trend-svg{width:100%; height:90px; display:block;}
+  .trend-caption{display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint); margin-top:6px; font-family:'IBM Plex Mono', monospace;}
+
+  /* ---------- TIP ---------- */
+  .tip-box{
+    background:linear-gradient(135deg, rgba(91,147,196,0.12), rgba(91,147,196,0.02));
+    border:1px solid var(--border); border-radius:var(--radius-sm);
+    padding:16px;
+  }
+  .tip-box .tip-eyebrow{font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); margin-bottom:8px;}
+  .tip-box p{margin:0; font-size:13.5px; line-height:1.55; color:var(--text);}
+
+  footer{
+    margin-top:34px; padding-top:18px; border-top:1px solid var(--border);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
+    font-size:11.5px; color:var(--text-faint); font-family:'IBM Plex Mono', monospace;
+  }
+  footer a{color:var(--text-faint); text-decoration:underline;}
+  footer button.linklike{
+    background:none;border:none;color:var(--text-faint);text-decoration:underline;
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; cursor:pointer; padding:0;
+  }
+  footer button.linklike:hover{color:var(--debit);}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--border); border-radius:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1 class="sr-only">Carbon Ledger — Carbon Footprint Awareness Platform. Log what you emit, credit what you save.</h1>
+  <img class="hero-img" src="hero-banner.svg" alt="Carbon Ledger — Carbon Footprint Awareness Platform. Track what you emit. Credit what you save.">
+
+  <div class="status-bar">
+    <div class="balance-card">
+      <div class="label">Net balance, all time</div>
+      <div class="amount" id="balanceAmount">0.0<small>kg CO₂e</small></div>
+      <div class="delta flat" id="balanceDelta">— no data yet</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT COLUMN -->
+    <div>
+      <div class="panel">
+        <h2>New entry</h2>
+        <div class="pills" id="categoryPills"></div>
+
+        <div class="field-row">
+          <div class="field" style="flex:1 1 100%;">
+            <label for="activitySelect">Activity</label>
+            <select id="activitySelect"></select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="qtyInput">Amount</label>
+            <div class="qty-field">
+              <input type="number" id="qtyInput" min="0" step="0.1" placeholder="0" inputmode="decimal">
+              <span class="unit-tag" id="unitTag">km</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="dateInput">Date</label>
+            <input type="date" id="dateInput">
+          </div>
+        </div>
+
+        <div class="preview-row">
+          <span class="pv-label">This entry adds</span>
+          <span class="pv-amt debit" id="previewAmt">+0.0 kg CO₂e</span>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn" id="addEntryBtn">Record entry</button>
+          <button class="btn secondary" id="sampleBtn">Load sample data</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Ledger <span id="ledgerCount" style="color:var(--text-faint); font-weight:400;"></span></h2>
+        <div id="ledgerArea"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div>
+      <div class="panel">
+        <h2>Where it's coming from</h2>
+        <div id="breakdownArea"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Last 14 days</h2>
+        <svg class="trend-svg" id="trendSvg" viewBox="0 0 300 90" preserveAspectRatio="none"></svg>
+        <div class="trend-caption"><span id="trendMin">14 days ago</span><span id="trendMax">today</span></div>
+      </div>
+
+      <div class="panel">
+        <h2>Today's tip</h2>
+        <div class="tip-box">
+          <div class="tip-eyebrow" id="tipCategory">General</div>
+          <p id="tipText">Record a few entries to get a tip tailored to your biggest source of emissions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>Emission factors are approximate, India-context estimates for demo purposes.</span>
+    <button class="linklike" id="resetBtn">Clear all entries</button>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const CATEGORIES = {
+    transport: {
+      label:'Transport', unit:'km', color:'var(--transport)', hex:'#5b93c4',
+      activities:[
+        {key:'car_petrol', label:'Car (Petrol)', factor:0.192, credit:false},
+        {key:'car_diesel', label:'Car (Diesel)', factor:0.171, credit:false},
+        {key:'two_wheeler', label:'Two-wheeler (Petrol)', factor:0.103, credit:false},
+        {key:'auto', label:'Auto-rickshaw (CNG)', factor:0.070, credit:false},
+        {key:'bus', label:'Bus', factor:0.105, credit:false},
+        {key:'train', label:'Train / Metro', factor:0.041, credit:false},
+        {key:'flight', label:'Flight (Domestic)', factor:0.255, credit:false},
+        {key:'cycle_walk', label:'Cycled / walked instead of driving', factor:0.150, credit:true}
+      ]
+    },
+    electricity: {
+      label:'Electricity', unit:'kWh', color:'var(--electricity)', hex:'#dba84a',
+      activities:[
+        {key:'grid', label:'Grid electricity used', factor:0.820, credit:false},
+        {key:'solar', label:'Solar / renewable used instead of grid', factor:0.820, credit:true}
+      ]
+    },
+    diet: {
+      label:'Diet', unit:'meal(s)', color:'var(--diet)', hex:'#c2624a',
+      activities:[
+        {key:'meat_heavy', label:'Meat-heavy meal', factor:3.30, credit:false},
+        {key:'mixed', label:'Mixed meal (some meat)', factor:1.70, credit:false},
+        {key:'veg', label:'Vegetarian meal', factor:1.10, credit:false},
+        {key:'vegan', label:'Vegan meal', factor:0.70, credit:false},
+        {key:'plant_swap', label:'Chose plant-based over meat', factor:2.20, credit:true}
+      ]
+    },
+    waste: {
+      label:'Waste', unit:'kg', color:'var(--waste)', hex:'#5fa978',
+      activities:[
+        {key:'landfill', label:'General waste (landfill)', factor:0.50, credit:false},
+        {key:'recycled', label:'Recycled / composted', factor:0.40, credit:true}
+      ]
+    }
+  };
+
+  const TIPS = {
+    transport:"Swap three short car trips a week for cycling, walking or the metro — that alone can save roughly 12-18 kg CO\u2082e a week.",
+    electricity:"Switch to LED bulbs and unplug idle chargers and appliances — small habits like this typically trim 5-10% off your electricity footprint.",
+    diet:"Going vegetarian just one day a week saves around 2 kg CO\u2082e per meal swapped, with zero cost.",
+    waste:"Composting wet waste and segregating recyclables can cut your household waste footprint by up to 40%.",
+    general:"Start by logging your daily commute and electricity use — those two categories usually make up most of a household's footprint."
+  };
+
+  const STORAGE_KEY = "carbon_ledger_entries_v1";
+  let entries = loadEntries();
+  let activeCategory = "transport";
+
+  // ---------- storage ----------
+  function loadEntries(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){ return []; }
+  }
+  function saveEntries(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }catch(e){}
+  }
+
+  // ---------- helpers ----------
+  function fmt(n){
+    const sign = n < 0 ? "-" : "";
+    return sign + Math.abs(n).toFixed(1);
+  }
+  function todayStr(){
+    const d = new Date();
+    return d.toISOString().slice(0,10);
+  }
+  function daysAgoStr(n){
+    const d = new Date();
+    d.setDate(d.getDate()-n);
+    return d.toISOString().slice(0,10);
+  }
+  function niceDate(str){
+    const d = new Date(str+"T00:00:00");
+    return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});
+  }
+
+  // ---------- category pills ----------
+  const pillsEl = document.getElementById('categoryPills');
+  function renderPills(){
+    pillsEl.innerHTML = "";
+    Object.keys(CATEGORIES).forEach(key=>{
+      const cat = CATEGORIES[key];
+      const btn = document.createElement('button');
+      btn.type = "button";
+      btn.className = "pill";
+      btn.dataset.active = (key === activeCategory) ? "true" : "false";
+      btn.style.color = key === activeCategory ? null : cat.color;
+      btn.innerHTML = '<span class="dot" style="background:'+cat.hex+'"></span>'+cat.label;
+      btn.addEventListener('click', ()=>{
+        activeCategory = key;
+        renderPills();
+        renderActivitySelect();
+        updatePreview();
+      });
+      pillsEl.appendChild(btn);
+    });
+  }
+
+  // ---------- activity select ----------
+  const activitySelect = document.getElementById('activitySelect');
+  const unitTag = document.getElementById('unitTag');
+  function renderActivitySelect(){
+    const cat = CATEGORIES[activeCategory];
+    activitySelect.innerHTML = "";
+    cat.activities.forEach(act=>{
+      const opt = document.createElement('option');
+      opt.value = act.key;
+      opt.textContent = act.label + (act.credit ? "  (credit)" : "");
+      activitySelect.appendChild(opt);
+    });
+    unitTag.textContent = cat.unit;
+  }
+
+  function currentActivity(){
+    const cat = CATEGORIES[activeCategory];
+    return cat.activities.find(a => a.key === activitySelect.value) || cat.activities[0];
+  }
+
+  // ---------- preview ----------
+  const qtyInput = document.getElementById('qtyInput');
+  const previewAmt = document.getElementById('previewAmt');
+  function updatePreview(){
+    const act = currentActivity();
+    const qty = parseFloat(qtyInput.value) || 0;
+    const kg = qty * act.factor * (act.credit ? -1 : 1);
+    previewAmt.textContent = (kg <= 0 ? "" : "+") + fmt(kg) + " kg CO\u2082e" + (act.credit ? " (credit)" : "");
+    previewAmt.className = "pv-amt " + (act.credit ? "credit" : "debit");
+  }
+  activitySelect.addEventListener('change', updatePreview);
+  qtyInput.addEventListener('input', updatePreview);
+
+  // ---------- add entry ----------
+  const dateInput = document.getElementById('dateInput');
+  dateInput.value = todayStr();
+  dateInput.max = todayStr();
+
+  document.getElementById('addEntryBtn').addEventListener('click', ()=>{
+    const qty = parseFloat(qtyInput.value);
+    if(!qty || qty <= 0){
+      qtyInput.focus();
+      qtyInput.style.borderColor = "var(--debit)";
+      setTimeout(()=>{ qtyInput.style.borderColor = ""; }, 900);
+      return;
+    }
+    const act = currentActivity();
+    const cat = CATEGORIES[activeCategory];
+    const kg = qty * act.factor * (act.credit ? -1 : 1);
+    entries.push({
+      id: Date.now() + Math.random(),
+      date: dateInput.value || todayStr(),
+      category: activeCategory,
+      activityLabel: act.label,
+      qty: qty,
+      unit: cat.unit,
+      kg: kg,
+      credit: act.credit
+    });
+    saveEntries();
+    qtyInput.value = "";
+    updatePreview();
+    renderAll();
+  });
+
+  document.getElementById('sampleBtn').addEventListener('click', ()=>{
+    const sample = [
+      {offset:9, category:'transport', activityKey:'car_petrol', qty:14},
+      {offset:8, category:'electricity', activityKey:'grid', qty:6},
+      {offset:8, category:'diet', activityKey:'meat_heavy', qty:1},
+      {offset:6, category:'transport', activityKey:'train', qty:22},
+      {offset:5, category:'diet', activityKey:'veg', qty:2},
+      {offset:5, category:'waste', activityKey:'landfill', qty:2},
+      {offset:4, category:'transport', activityKey:'cycle_walk', qty:8},
+      {offset:3, category:'electricity', activityKey:'grid', qty:5},
+      {offset:2, category:'diet', activityKey:'plant_swap', qty:1},
+      {offset:1, category:'transport', activityKey:'two_wheeler', qty:10},
+      {offset:0, category:'waste', activityKey:'recycled', qty:1.5},
+      {offset:0, category:'electricity', activityKey:'grid', qty:4}
+    ];
+    sample.forEach(s=>{
+      const cat = CATEGORIES[s.category];
+      const act = cat.activities.find(a=>a.key===s.activityKey);
+      const kg = s.qty * act.factor * (act.credit ? -1 : 1);
+      entries.push({
+        id: Date.now() + Math.random(),
+        date: daysAgoStr(s.offset),
+        category: s.category,
+        activityLabel: act.label,
+        qty: s.qty,
+        unit: cat.unit,
+        kg: kg,
+        credit: act.credit
+      });
+    });
+    saveEntries();
+    renderAll();
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', ()=>{
+    if(entries.length === 0) return;
+    if(confirm("Clear every entry in this ledger? This can't be undone.")){
+      entries = [];
+      saveEntries();
+      renderAll();
+    }
+  });
+
+  // ---------- balance ----------
+  function renderBalance(){
+    const total = entries.reduce((s,e)=>s+e.kg, 0);
+    document.getElementById('balanceAmount').innerHTML = fmt(total) + "<small>kg CO\u2082e</small>";
+
+    const thisWeekStart = daysAgoStr(6);
+    const prevWeekStart = daysAgoStr(13);
+    const thisWeek = entries.filter(e=>e.date >= thisWeekStart).reduce((s,e)=>s+e.kg,0);
+    const prevWeek = entries.filter(e=>e.date >= prevWeekStart && e.date < thisWeekStart).reduce((s,e)=>s+e.kg,0);
+
+    const deltaEl = document.getElementById('balanceDelta');
+    if(entries.length === 0){
+      deltaEl.className = "delta flat";
+      deltaEl.textContent = "— no data yet";
+      return;
+    }
+    if(prevWeek === 0 && thisWeek === 0){
+      deltaEl.className = "delta flat";
+      deltaEl.textContent = "this week: " + fmt(thisWeek) + " kg";
+      return;
+    }
+    const diff = thisWeek - prevWeek;
+    if(Math.abs(diff) < 0.05){
+      deltaEl.className = "delta flat";
+      deltaEl.textContent = "steady vs. last week";
+    } else if(diff > 0){
+      deltaEl.className = "delta up";
+      deltaEl.textContent = "\u2191 " + fmt(diff) + " kg vs. last week";
+    } else {
+      deltaEl.className = "delta down";
+      deltaEl.textContent = "\u2193 " + fmt(Math.abs(diff)) + " kg vs. last week";
+    }
+  }
+
+  // ---------- ledger ----------
+  function renderLedger(){
+    const area = document.getElementById('ledgerArea');
+    const countEl = document.getElementById('ledgerCount');
+    if(entries.length === 0){
+      countEl.textContent = "";
+      area.innerHTML =
+        '<div class="empty-state">' +
+        '<p>Your ledger is empty. Record your first entry above to start tracking — or try it instantly with sample data.</p>' +
+        '<button class="btn secondary" id="emptySampleBtn">Load sample data</button>' +
+        '</div>';
+      document.getElementById('emptySampleBtn').addEventListener('click', ()=>{
+        document.getElementById('sampleBtn').click();
+      });
+      return;
+    }
+    countEl.textContent = "(" + entries.length + ")";
+
+    // chronological order for running balance
+    const chrono = entries.slice().sort((a,b)=> a.id - b.id);
+    const balanceAtId = {};
+    let running = 0;
+    chrono.forEach(e=>{ running += e.kg; balanceAtId[e.id] = running; });
+
+    // newest first for display
+    const display = entries.slice().sort((a,b)=> b.id - a.id);
+    const html = display.map(e=>{
+      const cat = CATEGORIES[e.category];
+      const sign = e.credit ? "credit" : "debit";
+      const amtStr = (e.kg <= 0 ? "" : "+") + fmt(e.kg) + " kg";
+      return (
+        '<div class="ledger-row" data-id="'+e.id+'">' +
+          '<div class="lr-date">'+niceDate(e.date)+'</div>' +
+          '<div class="lr-main">' +
+            '<div class="lr-cat" style="color:'+cat.hex+'"><span class="dot" style="background:'+cat.hex+'"></span>'+cat.label+'</div>' +
+            '<div class="lr-activity">'+e.activityLabel+' &middot; '+e.qty+' '+e.unit+'</div>' +
+          '</div>' +
+          '<div class="lr-amt '+sign+'">'+amtStr+'</div>' +
+          '<div class="lr-bal">'+fmt(balanceAtId[e.id])+'</div>' +
+          '<button class="lr-del" data-del="'+e.id+'" aria-label="Delete entry">&times;</button>' +
+        '</div>'
+      );
+    }).join("");
+
+    area.innerHTML = '<div class="ledger-list">'+html+'</div>';
+
+    area.querySelectorAll('[data-del]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = parseFloat(btn.dataset.del);
+        entries = entries.filter(e=>e.id !== id);
+        saveEntries();
+        renderAll();
+      });
+    });
+  }
+
+  // ---------- breakdown ----------
+  function renderBreakdown(){
+    const area = document.getElementById('breakdownArea');
+    const totals = {};
+    let grand = 0;
+    Object.keys(CATEGORIES).forEach(k=> totals[k] = 0);
+    entries.forEach(e=>{
+      const v = Math.max(e.kg, 0); // only count emitting entries toward "source" share
+      totals[e.category] += v;
+      grand += v;
+    });
+
+    if(grand <= 0){
+      area.innerHTML = '<div class="bk-empty">No emissions logged yet — your breakdown will appear here.</div>';
+      return;
+    }
+
+    const rows = Object.keys(CATEGORIES).map(k=>{
+      const cat = CATEGORIES[k];
+      const val = totals[k];
+      const pct = grand > 0 ? (val/grand*100) : 0;
+      return {k, cat, val, pct};
+    }).sort((a,b)=> b.val - a.val);
+
+    area.innerHTML = rows.map(r=>{
+      return (
+        '<div class="bk-row">' +
+          '<div class="bk-top">' +
+            '<span class="bk-name"><span class="dot" style="background:'+r.cat.hex+'"></span>'+r.cat.label+'</span>' +
+            '<span class="bk-val">'+r.pct.toFixed(0)+'% &middot; '+fmt(r.val)+' kg</span>' +
+          '</div>' +
+          '<div class="bk-bar"><i style="width:'+r.pct.toFixed(1)+'%; background:'+r.cat.hex+'"></i></div>' +
+        '</div>'
+      );
+    }).join("");
+
+    // tip based on top category
+    const top = rows[0];
+    const tipCat = document.getElementById('tipCategory');
+    const tipText = document.getElementById('tipText');
+    if(top && top.val > 0){
+      tipCat.textContent = top.cat.label + " is your biggest source";
+      tipText.textContent = TIPS[top.k];
+    } else {
+      tipCat.textContent = "General";
+      tipText.textContent = TIPS.general;
+    }
+  }
+
+  // ---------- trend ----------
+  function renderTrend(){
+    const svg = document.getElementById('trendSvg');
+    const days = [];
+    for(let i=13;i>=0;i--){ days.push(daysAgoStr(i)); }
+    const totalsByDay = {};
+    days.forEach(d=> totalsByDay[d] = 0);
+    entries.forEach(e=>{ if(totalsByDay.hasOwnProperty(e.date)) totalsByDay[e.date] += e.kg; });
+
+    const values = days.map(d=> totalsByDay[d]);
+    const max = Math.max(...values, 0.001);
+    const min = Math.min(...values, 0);
+    const range = (max - min) || 1;
+
+    const W = 300, H = 90, PAD = 6;
+    const stepX = (W - PAD*2) / (days.length - 1);
+
+    const points = values.map((v,i)=>{
+      const x = PAD + i*stepX;
+      const y = H - PAD - ((v - min)/range) * (H - PAD*2);
+      return [x,y];
+    });
+
+    const zeroY = H - PAD - ((0 - min)/range) * (H - PAD*2);
+
+    const linePath = points.map((p,i)=> (i===0?"M":"L")+p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");
+    const areaPath = linePath + " L"+points[points.length-1][0].toFixed(1)+","+(H-PAD)+" L"+points[0][0].toFixed(1)+","+(H-PAD)+" Z";
+
+    svg.innerHTML =
+      '<line x1="'+PAD+'" y1="'+zeroY.toFixed(1)+'" x2="'+(W-PAD)+'" y2="'+zeroY.toFixed(1)+'" stroke="#3a4250" stroke-width="1" stroke-dasharray="3,3"/>' +
+      '<path d="'+areaPath+'" fill="#5b93c4" fill-opacity="0.10" stroke="none"/>' +
+      '<path d="'+linePath+'" fill="none" stroke="#5b93c4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+      points.map(p=> '<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="2" fill="#e9e7e0" fill-opacity="0.55"/>').join("");
+  }
+
+  function renderAll(){
+    renderBalance();
+    renderLedger();
+    renderBreakdown();
+    renderTrend();
+  }
+
+  // ---------- init ----------
+  renderPills();
+  renderActivitySelect();
+  updatePreview();
+  renderAll();
+
+})();
+</script>
+</body>
+</html>
