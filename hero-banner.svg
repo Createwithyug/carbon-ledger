@@ -1,0 +1,113 @@
+<svg viewBox="0 0 1600 500" xmlns="http://www.w3.org/2000/svg" font-family="'IBM Plex Mono', monospace">
+  <defs>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M28 0 L0 0 L0 28" fill="none" stroke="rgba(231,229,221,0.045)" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="glow" cx="28%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#5b93c4" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#5b93c4" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="10"/>
+    </filter>
+  </defs>
+
+  <!-- background -->
+  <rect x="0" y="0" width="1600" height="500" fill="#11151a"/>
+  <rect x="0" y="0" width="1600" height="500" fill="url(#grid)"/>
+  <rect x="0" y="0" width="1600" height="500" fill="url(#glow)"/>
+
+  <!-- ===================== LEDGER / PASSBOOK ===================== -->
+  <g transform="translate(150,68) rotate(-2.5)">
+    <!-- shadow -->
+    <rect x="10" y="18" width="600" height="370" rx="10" fill="#000000" opacity="0.38" filter="url(#shadow)"/>
+    <!-- page -->
+    <rect x="0" y="0" width="600" height="370" rx="10" fill="#f1ede2"/>
+    <!-- crease -->
+    <rect x="296" y="0" width="8" height="370" fill="#e9e4d6"/>
+    <line x1="300" y1="0" x2="300" y2="370" stroke="#d9d2c2" stroke-width="1"/>
+
+    <!-- top label on page -->
+    <text x="30" y="32" font-size="11" letter-spacing="2.5" fill="#9a917e" font-weight="600">LEDGER</text>
+    <text x="570" y="32" font-size="11" letter-spacing="1" fill="#9a917e" text-anchor="end">14&#8209;DAY TREND</text>
+
+    <!-- trend line -->
+    <line x1="30" y1="116" x2="570" y2="116" stroke="#cfc8b4" stroke-width="1" stroke-dasharray="3,4"/>
+    <path d="M30,100 L100,82 L170,94 L240,66 L300,78 L370,58 L440,70 L500,48 L570,65"
+          fill="none" stroke="#5b93c4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <g fill="#5b93c4">
+      <circle cx="30" cy="100" r="3"/><circle cx="100" cy="82" r="3"/><circle cx="170" cy="94" r="3"/>
+      <circle cx="240" cy="66" r="3"/><circle cx="300" cy="78" r="3"/><circle cx="370" cy="58" r="3"/>
+      <circle cx="440" cy="70" r="3"/><circle cx="500" cy="48" r="3"/><circle cx="570" cy="65" r="3"/>
+    </g>
+
+    <!-- left page ledger rows -->
+    <g font-size="10" font-weight="600" letter-spacing="1.2" fill="#6b6356">
+      <circle cx="34" cy="142" r="4" fill="#5b93c4"/>
+      <text x="48" y="146">TRANSPORT</text>
+      <circle cx="34" cy="182" r="4" fill="#dba84a"/>
+      <text x="48" y="186">ELECTRICITY</text>
+      <circle cx="34" cy="222" r="4" fill="#c2624a"/>
+      <text x="48" y="226">DIET</text>
+      <circle cx="34" cy="262" r="4" fill="#5fa978"/>
+      <text x="48" y="266">WASTE</text>
+    </g>
+    <g font-size="14" font-weight="600" text-anchor="end">
+      <text x="270" y="146" fill="#c2624a">+2.8</text>
+      <text x="270" y="186" fill="#c2624a">+6.4</text>
+      <text x="270" y="226" fill="#c2624a">+3.3</text>
+      <text x="270" y="266" fill="#5fa978">&#8211;0.4</text>
+    </g>
+    <g stroke="#e9e4d6" stroke-width="1">
+      <line x1="30" y1="156" x2="270" y2="156"/>
+      <line x1="30" y1="196" x2="270" y2="196"/>
+      <line x1="30" y1="236" x2="270" y2="236"/>
+      <line x1="30" y1="276" x2="270" y2="276"/>
+    </g>
+
+    <!-- right page ledger rows -->
+    <g font-size="10" font-weight="600" letter-spacing="1.2" fill="#6b6356">
+      <circle cx="334" cy="142" r="4" fill="#5b93c4"/>
+      <text x="348" y="146">TRANSPORT</text>
+      <circle cx="334" cy="182" r="4" fill="#dba84a"/>
+      <text x="348" y="186">ELECTRICITY</text>
+      <circle cx="334" cy="222" r="4" fill="#c2624a"/>
+      <text x="348" y="226">DIET</text>
+    </g>
+    <g font-size="14" font-weight="600" text-anchor="end">
+      <text x="570" y="146" fill="#5fa978">&#8211;1.2</text>
+      <text x="570" y="186" fill="#c2624a">+4.9</text>
+      <text x="570" y="226" fill="#c2624a">+1.1</text>
+    </g>
+    <g stroke="#e9e4d6" stroke-width="1">
+      <line x1="330" y1="156" x2="570" y2="156"/>
+      <line x1="330" y1="196" x2="570" y2="196"/>
+      <line x1="330" y1="236" x2="570" y2="236"/>
+    </g>
+
+    <!-- running balance -->
+    <line x1="330" y1="320" x2="570" y2="320" stroke="#d9d2c2" stroke-width="1" stroke-dasharray="2,3"/>
+    <text x="330" y="345" font-size="10" letter-spacing="1.5" fill="#9a917e" font-weight="600">BALANCE</text>
+    <text x="570" y="345" font-size="16" font-weight="700" fill="#23272c" text-anchor="end">142.6 kg</text>
+  </g>
+
+  <!-- ===================== WORDMARK ===================== -->
+  <line x1="900" y1="128" x2="1540" y2="128" stroke="#272e38" stroke-width="1"/>
+  <text x="1540" y="160" font-size="13" letter-spacing="3" fill="#5d6571" text-anchor="end" font-weight="500">
+    CARBON FOOTPRINT AWARENESS PLATFORM
+  </text>
+
+  <text x="1540" y="252" font-family="'Fraunces', serif" font-size="76" font-weight="600" fill="#e9e7e0" text-anchor="end" letter-spacing="-1">
+    Carbon
+  </text>
+  <text x="1540" y="334" font-family="'Fraunces', serif" font-size="76" font-weight="500" font-style="italic" fill="#5b93c4" text-anchor="end" letter-spacing="-1">
+    Ledger
+  </text>
+
+  <text x="1540" y="380" font-family="'Inter', sans-serif" font-size="20" fill="#919aa6" text-anchor="end">
+    Track what you emit.
+  </text>
+  <text x="1540" y="408" font-family="'Inter', sans-serif" font-size="20" fill="#919aa6" text-anchor="end">
+    Credit what you save.
+  </text>
+</svg>
